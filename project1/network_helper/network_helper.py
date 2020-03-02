@@ -10,9 +10,13 @@ provides
         3. default gateway details.
         4. interface details.
 """
+
+
 import os
-import sys
 import socket
+from .network_helper_exceptions import *
+
+
 class NetworkHelperCommands:
     """
     class: NetworkHelperCommands
@@ -43,14 +47,17 @@ class NetworkHelperCommands:
             Parameters:
                 1.domain_name(it can either be domain name or an ip address)
         """
-        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
-           return "ConnectError: [Ip address or hostname is not reachable 100% loss]"
         
         if ip_or_dname == "127.0.0.0":
-            return "ConnectError: [Not able to ping broadcast]"
+        
+            raise LoopBackIpAddrError
+
+        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
+        
+            raise Error 
             
         return os.popen("ping -c 4 " + ip_or_dname + " | tail -n 3").read().strip()
-
+        
 
     @staticmethod
     def network_hop_count(ip_addr):

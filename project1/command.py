@@ -1,16 +1,16 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 import network_helper
 """
 """
-
 if __name__=='__main__':
 
     if len(sys.argv) < 2:
+    
         print("Usage:  [-h: to find hop count to an ip address(add ip after -h)]\n\
 \t[-p: to get ping statistics of an ip addr(add ip after -p)]\
-\n\t[-g: to get default gateway]\
-\n\t[-pd : to get ping statistics of a purticular domain name]\
-\n\t[-ifip: to get interface details]")
+\n\t[-g: to get default gateway]\n\t[-ifip: to get interface details]")
 
     else:
 
@@ -24,11 +24,13 @@ Usage:  [-p takes one argument ip address]")
             if len(sys.argv) < 3:
                 print("UsageError: [No arguments passed]\n\
 Usage:  [-p takes one argument ip address]")
-                exit()
-                
-            print(network_helper.NetworkHelperCommands.\
-                  network_ping_statistics(sys.argv[2]))
+                exit() 
+            try:
+                print(network_helper.NetworkHelperCommands.\
+                      network_ping_statistics(sys.argv[2]))
             
+            except Exception:
+                print(str(Exception))
             
         elif sys.argv[1] == "-ifip":
         
@@ -70,7 +72,7 @@ Usage:  [-h takes one argument ip address]")
                 print("UsageError: [No arguments passed]\n\
 Usage:  [-h takes one argument ip address]")
                 exit()
-
+                
             print(network_helper.NetworkHelperCommands.\
                   network_hop_count(sys.argv[2]))
 
