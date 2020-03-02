@@ -46,10 +46,10 @@ class NetworkHelperCommands:
         if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
            return "ConnectError: [Ip address or hostname is not reachable 100% loss]"
         
-        if domain_name == "127.0.0.0":
+        if ip_or_dname == "127.0.0.0":
             return "ConnectError: [Not able to ping broadcast]"
             
-        return os.popen("ping -c 4 " + domain_name + " | tail -n 3").read().strip()
+        return os.popen("ping -c 4 " + ip_or_dname + " | tail -n 3").read().strip()
 
 
     @staticmethod
