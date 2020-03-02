@@ -25,11 +25,6 @@ class NetworkHelperCommands:
             4. network_interface_details
             5. __get_interfaces 
     """
-    def __init__(self):
-        """
-        Default Constructor
-        """
-        pass
 
     
     @staticmethod
@@ -61,16 +56,6 @@ class NetworkHelperCommands:
             return "ConnectError: [Ip address or hostname is not reachable]"
         return hop_value + " Hop to " + ip_addr
 
-    
-    @staticmethod
-    def __get_interfaces():
-        """
-        __get_interfaces is a private method which returns a list 
-        contaning the names of the network interfaces available
-        """
-        ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
-        return ifce_list.strip().split()
-
 
     @staticmethod
     def default_gateway_details():
@@ -89,6 +74,13 @@ class NetworkHelperCommands:
         network_interface_details returns a list and the total number of
         interfaces and number of interfaces with no ip address
         """
+        def __get_interfaces():
+            """
+            __get_interfaces is a private method which returns a list 
+            contaning the names of the network interfaces available
+            """
+            ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
+            return ifce_list.strip().split()
         dict_ifip = {}
         ifce_cnt = 0
         ifce_cnt_noip = 0

@@ -26,34 +26,53 @@ class NetworkHelperCommands:
             5. __get_interfaces 
     """
 
-    
     @staticmethod
-    def network_ping_statistics(domain_name):
+    def __ping_loss(ip_addr):
+    
+       return int(os.popen("ping -c 4 " + ip_addr + " | tail -n2 | \
+                             awk '{print substr($6,1,length($6)-1)}'")\
+                             .read().strip())
+                        
+                        
+    @staticmethod
+    def network_ping_statistics(ip_or_dname):
+    
         """
          network_ping_statistics returns a string contaning
          the ping statistics of the given argument
             Parameters:
                 1.domain_name(it can either be domain name or an ip address)
         """
+        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
+           return "ConnectError: [Ip address or hostname is not reachable 100% loss]"
+        
         if domain_name == "127.0.0.0":
             return "ConnectError: [Not able to ping broadcast]"
+            
         return os.popen("ping -c 4 " + domain_name + " | tail -n 3").read().strip()
 
 
     @staticmethod
     def network_hop_count(ip_addr):
+    
         """
         network_hop_count returns a string 
         contaning the ping statistics of the given argument
             Parameters
                 1.domain_name(it can either be domain name or an ip address)
         """
-        if(ip_addr=="127.0.0.0"):
+        
+        if(NetworkHelperCommands.__ping_loss(ip_addr) == 100):
+           return "ConnectError: [Ip address or hostname is not reachable 100% loss]"
+
+        if(ip_addr == "127.0.0.0"):
             return "ConnectError: [Permission denied to 127.0.0.0]"
+
         hop_value=os.popen("traceroute " + ip_addr + " | tail -n 1 | awk \
                             '{print $1}'").read().strip()
-        if hop_value == "30" or hop_value=="":
+        if hop_value == "30" or hop_value == "":
             return "ConnectError: [Ip address or hostname is not reachable]"
+            
         return hop_value + " Hop to " + ip_addr
 
 
@@ -67,6 +86,15 @@ class NetworkHelperCommands:
                         .read().strip(), os.popen("ip route show | head -n\
                         1 | awk '{print $3}'").read().strip()
 
+    @staticmethod
+    def __get_interfaces():
+        """
+        __get_interfaces is a private method which returns a list 
+        contaning the names of the network interfaces available
+        """
+        ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
+        return ifce_list.strip().split()
+
 
     @staticmethod
     def network_interface_details():
@@ -74,17 +102,11 @@ class NetworkHelperCommands:
         network_interface_details returns a list and the total number of
         interfaces and number of interfaces with no ip address
         """
-        def __get_interfaces():
-            """
-            __get_interfaces is a private method which returns a list 
-            contaning the names of the network interfaces available
-            """
-            ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
-            return ifce_list.strip().split()
+        
         dict_ifip = {}
         ifce_cnt = 0
         ifce_cnt_noip = 0
-        for i in __get_interfaces():
+        for i in NetworkHelperCommands.__get_interfaces():
             ip_addr = os.popen("ifconfig " + i + " | grep 'inet addr:'\
                      | cut -d: -f2 | awk '{ print $1}'").read().strip()
             if len(ip_addr) == 0:
