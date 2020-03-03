@@ -1,10 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import sys
 import network_helper
 """
+command.py is a program to implement the network_helper module which
+    provides fucntions such as:
+        1. ping details of an ip address or domain name.
+        2. hop count of an ip address or domain name.
+        3. default gateway details.
+        4. interface details.
 """
-if __name__=='__main__':
+
+if __name__ == '__main__':
 
     if len(sys.argv) < 2:
     
@@ -17,20 +25,32 @@ if __name__=='__main__':
         if sys.argv[1] == "-p":
 
             if len(sys.argv) > 3:
+            
                 print("UsageError: [Unwanted arguments passed]\n\
 Usage:  [-p takes one argument ip address]")
                 exit()
                 
             if len(sys.argv) < 3:
+            
                 print("UsageError: [No arguments passed]\n\
 Usage:  [-p takes one argument ip address]")
-                exit() 
-            try:
+                exit()
+                
+            try:    
+            
                 print(network_helper.NetworkHelperCommands.\
                       network_ping_statistics(sys.argv[2]))
             
-            except Exception:
-                print(str(Exception))
+            except(network_helper.network_helper_exceptions.\
+                   LoopBackIpAddrError, 
+                   network_helper.network_helper_exceptions.\
+                   CompletePacketLossError, \
+                   network_helper.network_helper_exceptions.\
+                   OutputParseError, 
+                   network_helper.network_helper_exceptions.\
+                   UnKnownHostError) as err:
+                
+                print(str(err))
             
         elif sys.argv[1] == "-ifip":
         
@@ -43,15 +63,17 @@ Usage:  [-p takes one argument ip address]")
                                                   network_interface_details()
                                                   
             for i,j in list_ifip:
+            
                 print(i,":",j)
                 
             print("\ntotal no : of interfaces : ", ifce_cnt, "\ntotal no : of \
 interfaces with ip addr : ", ifce_cnt-ifce_cnt_noip, "\ntotal\
 no : of interfaces without ip addr : ", ifce_cnt_noip)
 
-
         elif sys.argv[1] == "-g":
+        
             if len(sys.argv) > 2:
+            
                 print("UsageError: [Unwanted arguments passed]\n\
 Usage:  [-h takes no arguments]")
                 exit()
@@ -61,23 +83,38 @@ Usage:  [-h takes no arguments]")
             print("Default gateway is", gateway_dev, "with "\
                   "ip address", gateway_ip)
 
- 
         elif sys.argv[1] == "-h":
+        
             if len(sys.argv) > 3:
+            
                 print("UsageError: [Unwanted arguments passed]\n\
 Usage:  [-h takes one argument ip address]")
                 exit()
 
             if len(sys.argv) < 3:
+            
                 print("UsageError: [No arguments passed]\n\
 Usage:  [-h takes one argument ip address]")
                 exit()
                 
-            print(network_helper.NetworkHelperCommands.\
-                  network_hop_count(sys.argv[2]))
-
+            try:   
+            
+                print(network_helper.NetworkHelperCommands.\
+                network_hop_count(sys.argv[2]), "hops to", sys.argv[2])
+            
+            except(network_helper.network_helper_exceptions.\
+                   LoopBackIpAddrError, 
+                   network_helper.network_helper_exceptions.\
+                   CompletePacketLossError, \
+                   network_helper.network_helper_exceptions.\
+                   OutputParseError, 
+                   network_helper.network_helper_exceptions.\
+                   UnKnownHostError) as err:
+                
+                print(str(err))
 
         else :
+        
             print("IllegalOperation:  [valid operations]\n\
 Usage:  [-h : to find hop count to an ip address(add ip after -h)]\n\
 \t[-p: to get an ip addr(add ip after -p)]\n\t[-g: to print default gateway]\

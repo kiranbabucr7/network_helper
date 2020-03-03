@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+
 """
 Network Helper
 =============
@@ -31,56 +33,88 @@ class NetworkHelperCommands:
     """
 
     @staticmethod
-    def __ping_loss(ip_addr):
+    def __ping_loss(ip_or_dname):
+        """
+        __ping_loss is private function returns the amount of loss 
+        percentage of packets send to the parameter which is passsed by the
+        user. If the function returns there is an ouput else
+        an exception is thrown.
+            
+            Exceptions raised:
+                1.CompletePacketLossError
+                2.OutputParseError    
+        """
     
-       return int(os.popen("ping -c 4 " + ip_addr + " | tail -n2 | \
-                             awk '{print substr($6,1,length($6)-1)}'")\
-                             .read().strip())
-                        
+        try:
+        
+            return int(os.popen("ping -c 4 " + ip_or_dname + " | tail -n2 |awk \
+                       '{print substr($6,1,length($6)-1)}'").read().strip())
+        
+        except:
+        
+            raise  UnKnownHostError            
                         
     @staticmethod
     def network_ping_statistics(ip_or_dname):
     
         """
          network_ping_statistics returns a string contaning
-         the ping statistics of the given argument
+         the ping statistics of the given argument if there is an output, 
+         else raises the required exceptions such as
+            exceptions:
+                1.LoopBackIpAddrError
+                2.CompletePacketLossError
+                3.OutputParseError
             Parameters:
                 1.domain_name(it can either be domain name or an ip address)
         """
-        
+      
         if ip_or_dname == "127.0.0.0":
         
             raise LoopBackIpAddrError
 
         if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
         
-            raise Error 
+            raise CompletePacketLossError
             
         return os.popen("ping -c 4 " + ip_or_dname + " | tail -n 3").read().strip()
         
 
     @staticmethod
-    def network_hop_count(ip_addr):
-    
+    def network_hop_count(ip_or_dname):
         """
-        network_hop_count returns a string 
-        contaning the ping statistics of the given argument
+        network_hop_count returns a string contaning the ping statistics of the 
+        given argument if there is an output, else raises
+        the required exceptions such as
+            exceptions:
+                1.LoopBackIpAddrError
+                2.CompletePacketLossError
+                3.OutputPaeseError
             Parameters
-                1.domain_name(it can either be domain name or an ip address)
+                1.ip_or_dname(it can either be domain name or an ip address)
         """
         
-        if(NetworkHelperCommands.__ping_loss(ip_addr) == 100):
-           return "ConnectError: [Ip address or hostname is not reachable 100% loss]"
-
-        if(ip_addr == "127.0.0.0"):
-            return "ConnectError: [Permission denied to 127.0.0.0]"
-
-        hop_value=os.popen("traceroute " + ip_addr + " | tail -n 1 | awk \
-                            '{print $1}'").read().strip()
-        if hop_value == "30" or hop_value == "":
-            return "ConnectError: [Ip address or hostname is not reachable]"
+        if(ip_or_dname == "127.0.0.0"):
+        
+            raise LoopBackIpAddrError
             
-        return hop_value + " Hop to " + ip_addr
+        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
+           
+            raise CompletePacketLossError
+            
+        try:
+            hop_value = int(os.popen("traceroute " + ip_or_dname + " | tail -n 1 | awk \
+                            '{print $1}'").read().strip())
+                            
+        except:
+            
+            raise UnKnownHostError
+                            
+        if hop_value >= 30:
+        
+            raise UnKnownHostError
+            
+        return hop_value
 
 
     @staticmethod
@@ -99,6 +133,7 @@ class NetworkHelperCommands:
         __get_interfaces is a private method which returns a list 
         contaning the names of the network interfaces available
         """
+        
         ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
         return ifce_list.strip().split()
 
@@ -113,15 +148,22 @@ class NetworkHelperCommands:
         dict_ifip = {}
         ifce_cnt = 0
         ifce_cnt_noip = 0
+        
         for i in NetworkHelperCommands.__get_interfaces():
+        
             ip_addr = os.popen("ifconfig " + i + " | grep 'inet addr:'\
                      | cut -d: -f2 | awk '{ print $1}'").read().strip()
+                     
             if len(ip_addr) == 0:
+            
                 ifce_cnt_noip = ifce_cnt_noip + 1
                 ifce_cnt = ifce_cnt + 1
                 dict_ifip[i] = "No ip address for this device"
+                
             else:
+            
                 dict_ifip[i] = ip_addr
                 ifce_cnt = ifce_cnt + 1
+                
         return list(dict.items(dict_ifip)), ifce_cnt, ifce_cnt_noip
 
