@@ -1,11 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-
-__author__ = "kiran babu"
-__status__ = "Dev"
-
-
 """
 network_helper_exceptions is module which provides all the exceptions 
 to be raised to increase the maximum reliabiliy of the network helper module

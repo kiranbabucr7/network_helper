@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+__author__ = "kiran babu"
+__status__ = "Dev"
+
 import sys
 import network_helper
 """
@@ -41,14 +44,7 @@ Usage:  [-p takes one argument ip address]")
                 print(network_helper.NetworkHelperCommands.\
                       network_ping_statistics(sys.argv[2]))
             
-            except(network_helper.network_helper_exceptions.\
-                   LoopBackIpAddrError, 
-                   network_helper.network_helper_exceptions.\
-                   CompletePacketLossError, \
-                   network_helper.network_helper_exceptions.\
-                   OutputParseError, 
-                   network_helper.network_helper_exceptions.\
-                   UnKnownHostError) as err:
+            except Exception as err:
                 
                 print(str(err))
             
@@ -102,14 +98,7 @@ Usage:  [-h takes one argument ip address]")
                 print(network_helper.NetworkHelperCommands.\
                 network_hop_count(sys.argv[2]), "hops to", sys.argv[2])
             
-            except(network_helper.network_helper_exceptions.\
-                   LoopBackIpAddrError, 
-                   network_helper.network_helper_exceptions.\
-                   CompletePacketLossError, \
-                   network_helper.network_helper_exceptions.\
-                   OutputParseError, 
-                   network_helper.network_helper_exceptions.\
-                   UnKnownHostError) as err:
+            except Exception as err:
                 
                 print(str(err))
 
