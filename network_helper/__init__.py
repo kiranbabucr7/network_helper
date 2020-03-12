@@ -3,5 +3,8 @@
 
 
 from .network_helper import NetworkHelperCommands
-from .network_helper_exceptions import LoopBackIpAddrError
+from .network_helper_exceptions import LoopBackIpAddrError\
+                                       , CompletePacketLossError\
+                                       , UnKnownHostError\
+                                       , HostNotReachableError
 
