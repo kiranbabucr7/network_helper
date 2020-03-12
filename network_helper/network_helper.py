@@ -1,16 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
 __author__ = "kiran babu"
 __status__ = "Dev"
-
 
 """
 Network Helper
 =============
 provides
-    NetworkHelper class with helper functions which provies.
+    NetworkHelper module provides class NetworkHelperCommands
+    with helper functions which provies.
         1. ping details of an ip address or domain name.
         2. hop count of an ip address or domain name.
         3. default gateway details.
@@ -20,8 +19,10 @@ provides
 
 import os
 import socket
-from .network_helper_exceptions import *
-
+from .network_helper_exceptions import LoopBackIpAddrError\
+                                       , CompletePacketLossError\
+                                       , UnKnownHostError\
+                                       , HostNotReachableError 
 
 class NetworkHelperCommands:
     """
@@ -33,30 +34,28 @@ class NetworkHelperCommands:
             2. network_hop_count
             3. default_gateway_details
             4. network_interface_details
-            5. __get_interfaces 
     """
 
     @staticmethod
-    def __ping_loss(ip_or_dname):
+    def _ping_loss(ip_or_dname):
         """
-        __ping_loss is private function returns the amount of loss 
+        _ping_loss is protected function returns the amount of loss 
         percentage of packets send to the parameter which is passsed by the
         user. If the function returns there is an ouput else
-        an exception is thrown.
+        an exception is raised.
             
             Exceptions raised:
-                1.CompletePacketLossError
-                2.OutputParseError    
+                1.UnKnownHostError    
         """
     
         try:
-        
-            return int(os.popen("ping -c 4 " + ip_or_dname + " | tail -n2 |awk \
-                       '{print substr($6,1,length($6)-1)}'").read().strip())
+            _command = "ping -c 4 {} | tail -n3 | awk '{}'".format(ip_or_dname\
+                       , "{print substr($6,1,length($6)-1)}")
+            return int(os.popen(_command).read().strip())
         
         except:
         
-            raise  UnKnownHostError            
+            raise  UnKnownHostError(ip_or_dname)           
                         
     @staticmethod
     def network_ping_statistics(ip_or_dname):
@@ -65,10 +64,11 @@ class NetworkHelperCommands:
          network_ping_statistics returns a string contaning
          the ping statistics of the given argument if there is an output, 
          else raises the required exceptions such as
+         
             exceptions:
                 1.LoopBackIpAddrError
                 2.CompletePacketLossError
-                3.OutputParseError
+                3.UnKnownHostError
             Parameters:
                 1.domain_name(it can either be domain name or an ip address)
         """
@@ -77,11 +77,14 @@ class NetworkHelperCommands:
         
             raise LoopBackIpAddrError
 
-        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
+        elif(NetworkHelperCommands._ping_loss(ip_or_dname) == 100):
         
-            raise CompletePacketLossError
+            raise CompletePacketLossError(ip_or_dname)
             
-        return os.popen("ping -c 4 " + ip_or_dname + " | tail -n 3").read().strip()
+        else:
+             
+            return os.popen("ping -c 4 " + ip_or_dname + " | tail -n 3")\
+                             .read().strip()
         
 
     @staticmethod
@@ -90,35 +93,41 @@ class NetworkHelperCommands:
         network_hop_count returns a string contaning the ping statistics of the 
         given argument if there is an output, else raises
         the required exceptions such as
+        
             exceptions:
                 1.LoopBackIpAddrError
                 2.CompletePacketLossError
-                3.OutputPaeseError
-            Parameters
+                3.UnKnownHostError
+                4.HostNotReachableError
+                
+            Parameter
                 1.ip_or_dname(it can either be domain name or an ip address)
         """
         
         if(ip_or_dname == "127.0.0.0"):
         
-            raise LoopBackIpAddrError
+            raise LoopBackIpAddrError()
             
-        if(NetworkHelperCommands.__ping_loss(ip_or_dname) == 100):
+        elif(NetworkHelperCommands._ping_loss(ip_or_dname) == 100):
            
-            raise CompletePacketLossError
+            raise CompletePacketLossError(ip_or_dname)
             
         try:
-            hop_value = int(os.popen("traceroute " + ip_or_dname + " | tail -n 1 | awk \
-                            '{print $1}'").read().strip())
+            _command="traceroute {} | tail -n 1 | awk \
+                     {}".format(ip_or_dname,"'{print $1}'")
+            _hop_value = int(os.popen(_command).read().strip())
                             
         except:
             
             raise UnKnownHostError
                             
-        if hop_value >= 30:
+        if _hop_value >= 30:
         
-            raise UnKnownHostError
+            raise HostNotReachableError(ip_or_dname)
             
-        return hop_value
+        else:   
+        
+            return _hop_value
 
 
     @staticmethod
@@ -127,19 +136,22 @@ class NetworkHelperCommands:
         network_interface_details returns a list and the total number of
         interfaces and number of interfaces with no ip address
         """
+        
         return os.popen("ip route show | head -n 1 | awk '{print $5}'")\
-                        .read().strip(), os.popen("ip route show | head -n\
-                        1 | awk '{print $3}'").read().strip()
+                        .read().strip()\
+                        , os.popen("ip route show | head -n1 \
+                        | awk '{print $3}'")\
+                        .read().strip()
 
     @staticmethod
-    def __get_interfaces():
+    def _get_interfaces():
         """
-        __get_interfaces is a private method which returns a list 
+        _get_interfaces is a protected method which returns a list 
         contaning the names of the network interfaces available
         """
         
-        ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
-        return ifce_list.strip().split()
+        _ifce_list = os.popen("ifconfig -a | grep -Eo '^[^ ]+'").read().strip()
+        return _ifce_list.strip().split()
 
 
     @staticmethod
@@ -148,26 +160,25 @@ class NetworkHelperCommands:
         network_interface_details returns a list and the total number of
         interfaces and number of interfaces with no ip address
         """
+        _dict_ifip = {}
+        _ifce_cnt = 0
+        _ifce_cnt_noip = 0
         
-        dict_ifip = {}
-        ifce_cnt = 0
-        ifce_cnt_noip = 0
-        
-        for i in NetworkHelperCommands.__get_interfaces():
-        
-            ip_addr = os.popen("ifconfig " + i + " | grep 'inet addr:'\
-                     | cut -d: -f2 | awk '{ print $1}'").read().strip()
-                     
-            if len(ip_addr) == 0:
+        for i in NetworkHelperCommands._get_interfaces():
             
-                ifce_cnt_noip = ifce_cnt_noip + 1
-                ifce_cnt = ifce_cnt + 1
-                dict_ifip[i] = "No ip address for this device"
+            _ip_addr = os.popen("ifconfig {} | grep 'inet addr:'\
+                                 | cut -d: -f2 | awk {}"\
+                                 .format(i,"'{ print $1}'")).read().strip()
+                     
+            if len(_ip_addr) == 0:
+            
+                _ifce_cnt_noip = _ifce_cnt_noip + 1
+                _ifce_cnt = _ifce_cnt + 1
+                _dict_ifip[i] = "No ip address for this device"
                 
             else:
             
-                dict_ifip[i] = ip_addr
-                ifce_cnt = ifce_cnt + 1
+                _dict_ifip[i] = _ip_addr
+                _ifce_cnt = _ifce_cnt + 1
                 
-        return list(dict.items(dict_ifip)), ifce_cnt, ifce_cnt_noip
-
+        return list(dict.items(_dict_ifip)), _ifce_cnt, _ifce_cnt_noip
